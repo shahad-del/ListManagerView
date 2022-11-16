@@ -21,7 +21,9 @@
 	<li>List 1</li>
 </ul>
 <input type="text" name="txtNewListName" id="txtNewListName" value="">
-<button type="button" id="btnAssList" onclick="addNewList()">Add</button>
+<input type="hidden" name="hdnSaveMode" id="hdnSaveMode" value="add">
+<input type="hidden" name="hdnEditId" id="hdnEditId" value="">
+<button type="button" id="btnAssList" onclick="saveChanges()">Add</button>
 <table id="tbllistName">
 	<tr>
 		<th>S.no</th>
@@ -33,6 +35,14 @@
 </table>
 <script type="text/javascript">
 	const url = 'http://127.0.0.1:8000/';
+	function saveChanges() {
+		const curSaveMode = document.getElementById('hdnSaveMode').value;
+		if (curSaveMode === 'add') {
+			addNewList();
+		} else if (curSaveMode === 'edit') {
+			endEdit();
+		}
+	}
 	function getAllList() {
 		const listpoints = url + 'lists';
 		fetch(listpoints)
@@ -61,10 +71,10 @@
 							d = new Date(data[i].created_on);
 							d_edit = new Date(data[i].edited_on);
 							document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (i + 1)
-								+ "</td><td id ='item_name_" + item_id + "'>" + data[i].name
-								+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'edit(" + item_id + ") '>" + 'edit'
+								+ "<input type='hidden' value='" + item_id + "' id ='hdn_" + item_id + "'></input></td><td id ='item_name_" + item_id + "'>" + data[i].name
+								+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'beginEdit(" + item_id + ") '>" + 'edit'
 								+ "</button><td><td><button id = 'delbtn_" + item_id + "' onclick= 'Delete( " + item_id + ") '>" + 'Delete'
-								+ "</button><td></tr>"
+								+ "</button><td></tr>";
 						}
 					})
 			})
@@ -90,39 +100,53 @@
 			console.log(data)
 			let ulLi = document.getElementById('listName');
 			ulLi.innerHTML += wrap_into_list(data);
+			let item_id = (data.id);
+			let d = new Date(data.created_on);
+			let d_edit = new Date(data.edited_on);
+			let rowCount = document.getElementsByTagName('table')[0].children.length-1
+
+			document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (rowCount+1)
+				+ "<input type='hidden' value='" + item_id + "' id ='hdn_" + item_id + "'></input></td><td id ='item_name_" + item_id + "'>" + data[i].name
+				+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'beginEdit(" + item_id + ") '>" + 'edit'
+				+ "</button><td><td><button id = 'delbtn_" + item_id + "' onclick= 'Delete( " + item_id + ") '>" + 'Delete'
+				+ "</button><td></tr>";
 		});
 	}
-	function edited_name_user() {
-		updated_name = document.getElementById('txtNewListName').value;
-		acessing_button.innerHTML = 'Add';
-		acessing_button.setAttribute('onclick', 'addNewList()');
-		console.log(updated_name);
-		return updated_name;
-	}
+	function endEdit() {
+		const updated_name = document.getElementById('txtNewListName').value;
+		const edit_id = document.getElementById('hdnEditId').value;
 
-	function edit(id) {
-
-		item_name = document.getElementById('item_name_' + id).innerText;
-		document.getElementById('txtNewListName').value = item_name;
-		acessing_button.innerHTML = 'Edit';
-		acessing_button.setAttribute('onclick', 'edited_name()');
-		let edited_name = ""
-		acessing_button.onclick = function () {
-			alert("button was clicked")
-			edited = edited_name_user();
-			edited_name += edited;
-		};
-		// 
-		let response_for_jsonRequest = { 'name': item_name, 'edited': edited_name };
+		let response_for_jsonRequest = { 'id': edit_id, 'edited': updated_name };
 		const endpoint = url + 'update_list';
 		const addListRequest = {
 			'method': 'PUT',
 			'headers': { 'content-type': 'application/json' },
 			body: JSON.stringify(response_for_jsonRequest)
 		}
-		fetch(endpoint, addListRequest).then(response => response.json()).then(update_list => { console.log(update_list) });
-		console.log(item_name);
+		fetch(endpoint, addListRequest)
+			.then(response => response.json())
+			.then(update_list => {
+				console.log(update_list);
+				acessing_button.innerHTML = 'Add';
+				document.getElementById('item_name_' + id).innerText = updated_name;
+				document.getElementById('txtNewListName').value = '';
+				document.getElementById('hdnSaveMode').value = 'add';
+				document.getElementById('hdnEditId').value = '';
+				acessing_button.setAttribute('onclick', 'addNewList()');
+			})
+			.catch(error => {
+				console.log(error);
+				alert(error);
+			});
+	}
 
+	function beginEdit(id) {
+
+		item_name = document.getElementById('item_name_' + id).innerText;
+		document.getElementById('txtNewListName').value = item_name;
+		document.getElementById('hdnSaveMode').value = 'edit';
+		document.getElementById('hdnEditId').value = id;
+		acessing_button.innerHTML = 'Edit';
 	}
 	function Delete(item) {
 		let id_response_for_requestJson = { 'id': item };
