@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>list Manager</title>
+	<style>
+		table,
+		th,
+		td {
+			border: 1px solid;
+			border-color: #96D4D4;
+		}
+	</style>
+</head>
+
+
+<ul id="listName">
+	<li>List 1</li>
+</ul>
+<input type="text" name="txtNewListName" id="txtNewListName" value="">
+<button type="button" id="btnAssList" onclick="addNewList()">Add</button>
+<table id="tbllistName">
+	<tr>
+		<th>S.no</th>
+		<th>Name</th>
+		<th>created on</th>
+		<th>Edited on</th>
+	</tr>
+
+</table>
+<script type="text/javascript">
+	const url = 'http://127.0.0.1:8000/';
+	function getAllList() {
+		const listpoints = url + 'lists';
+		fetch(listpoints)
+			// ,{
+
+			// 	method: 'Get', // *GET, POST, PUT, DELETE, etc.
+			// 	mode: 'cors', // no-cors, *cors, same-origin
+			// 	cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+			// 	credentials: 'same-origin', // include, *same-origin, omit
+			// 	headers: {
+			//   'Content-Type': 'application/json'
+			// }
+			// 	}
+			.then(response => {
+				return response.json()
+					// console.log(response);
+					.then(data => {
+						let all_list_name = '';
+						for (let i = 0; i < data.length; i++) {
+							all_list_name = all_list_name + wrap_into_list(data[i]);
+						}
+						var ul = document.getElementById("listName");
+						ul.innerHTML = all_list_name;
+						for (let i = 0; i < data.length; i++) {
+							let item_id = (data[i].id);
+							d = new Date(data[i].created_on);
+							d_edit = new Date(data[i].edited_on);
+							document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (i + 1)
+								+ "</td><td id ='item_name_" + item_id + "'>" + data[i].name
+								+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'edit(" + item_id + ") '>" + 'edit'
+								+ "</button><td><td><button id = 'delbtn_" + item_id + "' onclick= 'Delete( " + item_id + ") '>" + 'Delete'
+								+ "</button><td></tr>"
+						}
+					})
+			})
+	}
+	getAllList();
+	function wrap_into_list(list_item) {
+		const listName = (list_item.name);
+		var item = '<li>' + listName + '</li>';
+		return item
+	}
+	acessing_button = document.getElementById("btnAssList")
+	function addNewList() {
+		let newListName = document.getElementById('txtNewListName').value;
+		document.getElementById('txtNewListName').value = "";
+		let name_response_for_requestJson = { 'name': newListName };
+		const endpoint = url + 'lists/addlist';
+		const addListRequest = {
+			'method': 'POST',
+			'headers': { 'Content-Type': 'application/json' },
+			'body': JSON.stringify(name_response_for_requestJson)
+		}
+		fetch(endpoint, addListRequest).then((response) => response.json()).then(data => {
+			console.log(data)
+			let ulLi = document.getElementById('listName');
+			ulLi.innerHTML += wrap_into_list(data);
+		});
+	}
+	function edited_name_user() {
+		updated_name = document.getElementById('txtNewListName').value;
+		acessing_button.innerHTML = 'Add';
+		acessing_button.setAttribute('onclick', 'addNewList()');
+		console.log(updated_name);
+		return updated_name;
+	}
+
+	function edit(id) {
+
+		item_name = document.getElementById('item_name_' + id).innerText;
+		document.getElementById('txtNewListName').value = item_name;
+		acessing_button.innerHTML = 'Edit';
+		acessing_button.setAttribute('onclick', 'edited_name()');
+		let edited_name = ""
+		acessing_button.onclick = function () {
+			alert("button was clicked")
+			edited = edited_name_user();
+			edited_name += edited;
+		};
+		// 
+		let response_for_jsonRequest = { 'name': item_name, 'edited': edited_name };
+		const endpoint = url + 'update_list';
+		const addListRequest = {
+			'method': 'PUT',
+			'headers': { 'content-type': 'application/json' },
+			body: JSON.stringify(response_for_jsonRequest)
+		}
+		fetch(endpoint, addListRequest).then(response => response.json()).then(update_list => { console.log(update_list) });
+		console.log(item_name);
+
+	}
+	function Delete(item) {
+		let id_response_for_requestJson = { 'id': item };
+		const endpoint = url + 'delete_list'
+		const addListRequest = {
+			'method': 'DELETE',
+			'headers': { 'content-type': 'application/json' },
+			body: JSON.stringify(id_response_for_requestJson)
+		}
+		full_info = document.getElementById('delbtn_' + item);
+		console.log(full_info);
+		fetch(endpoint, addListRequest).then(response => response.json()).then(data => {
+			console.log(data)
+			location.reload(true);
+		});
+	}
+
+
+</script>
+</body>
+
+</html>
