@@ -103,10 +103,10 @@
 			let item_id = (data.id);
 			let d = new Date(data.created_on);
 			let d_edit = new Date(data.edited_on);
-			let rowCount = document.getElementsByTagName('table')[0].children.length-1
+			let rowCount = document.getElementsByTagName('table')[0].children.length-1;
 
 			document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (rowCount+1)
-				+ "<input type='hidden' value='" + item_id + "' id ='hdn_" + item_id + "'></input></td><td id ='item_name_" + item_id + "'>" + data[i].name
+				+ "<input type='hidden' value='" + item_id + "' id ='hdn_" + item_id + "'></input></td><td id ='item_name_" + item_id + "'>" + data.name
 				+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'beginEdit(" + item_id + ") '>" + 'edit'
 				+ "</button><td><td><button id = 'delbtn_" + item_id + "' onclick= 'Delete( " + item_id + ") '>" + 'Delete'
 				+ "</button><td></tr>";
@@ -128,11 +128,10 @@
 			.then(update_list => {
 				console.log(update_list);
 				acessing_button.innerHTML = 'Add';
-				document.getElementById('item_name_' + id).innerText = updated_name;
+				document.getElementById('item_name_' + edit_id).innerText = updated_name;
 				document.getElementById('txtNewListName').value = '';
 				document.getElementById('hdnSaveMode').value = 'add';
 				document.getElementById('hdnEditId').value = '';
-				acessing_button.setAttribute('onclick', 'addNewList()');
 			})
 			.catch(error => {
 				console.log(error);
@@ -156,11 +155,11 @@
 			'headers': { 'content-type': 'application/json' },
 			body: JSON.stringify(id_response_for_requestJson)
 		}
-		full_info = document.getElementById('delbtn_' + item);
-		console.log(full_info);
+		row_to_be_deleted = document.getElementById('item_name_' + item);
 		fetch(endpoint, addListRequest).then(response => response.json()).then(data => {
 			console.log(data)
-			location.reload(true);
+			fetching_whole_tr=row_to_be_deleted.parentNode;
+			fetching_whole_tr.remove();
 		});
 	}
 
