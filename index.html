@@ -82,7 +82,7 @@
 	getAllList();
 	function wrap_into_list(list_item) {
 		const listName = (list_item.name);
-		var item = '<li>' + listName + '</li>';
+		var item = '<li id = "'+ list_item.id + '">' + listName + '</li>';
 		return item
 	}
 	acessing_button = document.getElementById("btnAssList")
@@ -103,9 +103,9 @@
 			let item_id = (data.id);
 			let d = new Date(data.created_on);
 			let d_edit = new Date(data.edited_on);
-			let rowCount = document.getElementsByTagName('table')[0].children.length-1;
+			let rowCount = document.getElementsByTagName('table')[0].children.length - 1;
 
-			document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (rowCount+1)
+			document.getElementsByTagName("table")[0].innerHTML += "<tr><td>" + (rowCount + 1)
 				+ "<input type='hidden' value='" + item_id + "' id ='hdn_" + item_id + "'></input></td><td id ='item_name_" + item_id + "'>" + data.name
 				+ "</td><td>" + (d.toDateString()) + "</td><td>" + (d_edit.toDateString()) + "</td><td><button id= 'editbtn_" + item_id + "' onclick = 'beginEdit(" + item_id + ") '>" + 'edit'
 				+ "</button><td><td><button id = 'delbtn_" + item_id + "' onclick= 'Delete( " + item_id + ") '>" + 'Delete'
@@ -147,19 +147,29 @@
 		document.getElementById('hdnEditId').value = id;
 		acessing_button.innerHTML = 'Edit';
 	}
-	function Delete(item) {
-		let id_response_for_requestJson = { 'id': item };
+	function Delete(item_id) {
+		let id_response_for_requestJson = { 'id': item_id };
 		const endpoint = url + 'delete_list'
 		const addListRequest = {
 			'method': 'DELETE',
 			'headers': { 'content-type': 'application/json' },
 			body: JSON.stringify(id_response_for_requestJson)
 		}
-		row_to_be_deleted = document.getElementById('item_name_' + item);
+		row_to_be_deleted = document.getElementById('item_name_' + item_id);
+		document.getElementById(item_id).remove();
 		fetch(endpoint, addListRequest).then(response => response.json()).then(data => {
 			console.log(data)
-			fetching_whole_tr=row_to_be_deleted.parentNode;
-			fetching_whole_tr.remove();
+			table_row = row_to_be_deleted.parentNode;
+			table_row.remove();
+			let myTable = document.getElementById('tbllistName');
+			rows = myTable.rows;
+			for (let i = 1; i <= (rows.length - 1); i++) {
+				k = rows[i].getElementsByTagName('td')[0];
+				k.innerHTML = i
+
+				//           OR                           
+				// myTable.rows[i].cells[0].innerHTML = i;
+			}
 		});
 	}
 
